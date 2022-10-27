@@ -1,0 +1,9 @@
+*.pyc
+/dist/
+/*.egg-info
+/*.egg
+/__pycache__/
+/.idea/
+.DS_Store
+/venv/
+.coverage
