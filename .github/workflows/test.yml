@@ -10,6 +10,7 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: pip install pytest
+        run: pip install pytest coverage
       - name: Run tests
-        run: pytest
+        run: coverage run --source=kube_bench_report_converter -m pytest
+      - uses: codecov/codecov-action@v3
