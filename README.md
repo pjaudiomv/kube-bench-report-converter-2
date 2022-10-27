@@ -1,3 +1,5 @@
+![Build](https://github.com/build-failure/kube-bench-report-converter/actions/workflows/main.yml/badge.svg)
+
 # kube-bench-report-converter
 
 Converts kube-bench execution console output to a CSV report.
