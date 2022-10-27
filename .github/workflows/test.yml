@@ -10,6 +10,6 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: pip install coverage
+        run: pip install pytest
       - name: Run tests
-        run: coverage run --source=kube_bench_report_converter -m unittest discover kube_bench_report_converter/tests
+        run: pytest
