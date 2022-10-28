@@ -9,9 +9,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.8
-      - name: Install dependencies
+      - name: Install Dependencies
         run: pip install pytest coverage
-      - name: Run tests
+      - name: Run Tests
         run: coverage run --source=kube_bench_report_converter -m pytest
       - uses: codecov/codecov-action@v3
         with:
