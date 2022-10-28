@@ -4,7 +4,7 @@
 
 # kube-bench-report-converter
 
-Converts kube-bench execution console output to a CSV report.
+Converts [kube-bench](https://github.com/aquasecurity/kube-bench) execution console output to a CSV report.
 
 ## Install
 
