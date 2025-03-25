@@ -12,17 +12,11 @@ def main():
     parser.add_argument('--include_warnings', action='store_true', help='Include WARNING level findings in the output.')
 
     args = parser.parse_args()
-    
-    print(f"Input file: {args.input_file_path}")
-    print(f"Output file: {args.output_file_path}")
-    print(f"Include warnings: {args.include_warnings}")
 
     if args.input_file_path:
         findings = report_parser.parse_from_file(args.input_file_path, include_warnings=args.include_warnings)
     else:
         findings = report_parser.parse_from_stdin(include_warnings=args.include_warnings)
-    
-    print(f"Found {len(findings)} findings")
 
     if args.output_file_path:
         print(f"Writing to {args.output_file_path}")

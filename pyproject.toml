@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kube-bench-report-converter-2"
-version = "0.0.2"
+version = "0.0.3"
 description = "Converts kube-bench checks console output to CSV."
 readme = "README.md"
 authors = [
