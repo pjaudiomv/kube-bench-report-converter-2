@@ -4,6 +4,7 @@ import sys
 FINDING = '['
 REMEDIATION_SECTION = '== Remediations'
 SUMMARY_SECTION = '== Summary'
+NEW_SECTION_PATTERN = re.compile('\\[INFO]\\s([0-9]+)\\s(.*)')
 STATUS_PATTERN = re.compile('\\[([a-zA-Z]+)]\\s([0-9.]+)\\s(.*)')
 ANCHOR_PATTERN = re.compile('[0-9]*\\.*([0-9]*)\\.*([0-9]*)')
 REMEDIATION_PATTERN = re.compile('([0-9]+\\.[0-9]+\\.[0-9]+)\\s(.*)')
@@ -54,9 +55,25 @@ def is_finding(value):
     return value.startswith(FINDING)
 
 
-def parse_line(line, context, findings):
+def is_new_section(value):
+    return NEW_SECTION_PATTERN.match(value)
+
+
+def parse_line(line, context, findings, include_warnings=False):
+    # If we hit a summary section, reset the remediation context but continue parsing
     if is_summary_section(line):
-        return False
+        context['remediation_section'] = False
+        context['remediation_details'] = {}
+        return True
+    
+    # If we find a new section, reset the context and continue
+    if is_new_section(line):
+        match = NEW_SECTION_PATTERN.match(line)
+        context['category'] = match.group(2)
+        context['subcategory'] = ''
+        context['remediation_section'] = False
+        context['remediation_details'] = {}
+        return True
 
     if not context['remediation_section']:
         context['remediation_section'] = is_remediation_section(line)
@@ -64,25 +81,40 @@ def parse_line(line, context, findings):
     if context['remediation_section']:
         if is_remediation_start(line):
             context['remediation_details'] = parse_remediation(line)
-            findings[context['remediation_details']['anchor']]['remediation'] = context['remediation_details']
+            anchor = context['remediation_details']['anchor']
+            if anchor in findings:
+                findings[anchor]['remediation'] = context['remediation_details']
         elif line and context['remediation_details']:
             context['remediation_details']['description'] += ' ' + line.rstrip()
 
     if is_finding(line):
-        finding_details = parse_finding_details(line)
-        if finding_details['is_category']:
-            context['category'] = finding_details['description']
-        elif finding_details['is_subcategory']:
-            context['subcategory'] = finding_details['description']
-        else:
-            finding_details['category'] = context['category']
-            finding_details['subcategory'] = context['subcategory']
-            findings[finding_details['anchor']] = finding_details
+        try:
+            finding_details = parse_finding_details(line)
+            
+            if finding_details['is_category']:
+                context['category'] = finding_details['description']
+            elif finding_details['is_subcategory']:
+                context['subcategory'] = finding_details['description']
+            else:
+                # Skip WARN findings unless include_warnings is True
+                if finding_details['level'] == 'WARN' and not include_warnings:
+                    return True
+                
+                # Skip INFO findings
+                if finding_details['level'] == 'INFO':
+                    return True
+                
+                finding_details['category'] = context['category']
+                finding_details['subcategory'] = context['subcategory']
+                findings[finding_details['anchor']] = finding_details
+        except Exception as e:
+            # In case of parsing error, continue to next line
+            print(f"Error parsing line: {line.strip()} - {str(e)}")
 
     return True
 
 
-def parse_from_stdin():
+def parse_from_stdin(include_warnings=False):
     findings = {}
     context = {
         'remediation_section': False,
@@ -92,13 +124,13 @@ def parse_from_stdin():
     }
 
     for line in sys.stdin:
-        if not parse_line(line, context, findings):
+        if not parse_line(line, context, findings, include_warnings):
             break
 
     return findings
 
 
-def parse_from_file(input_file_path):
+def parse_from_file(input_file_path, include_warnings=False):
     findings = {}
     context = {
         'remediation_section': False,
@@ -109,7 +141,6 @@ def parse_from_file(input_file_path):
 
     with open(input_file_path) as input_file:
         for line in input_file:
-            if not parse_line(line, context, findings):
-                break
+            parse_line(line, context, findings, include_warnings)
 
     return findings

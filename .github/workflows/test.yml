@@ -1,18 +1,24 @@
-name: Test
-on: [push]
+name: test
+on:
+  push:
+    branches-ignore: ['main']
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test-php:
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.8
-      - name: Install Dependencies
-        run: pip install pytest coverage
-      - name: Run Tests
-        run: coverage run --source=kube_bench_report_converter -m pytest
-      - uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: install requirements
+        run: |
+          pip install pytest pytest-cov
+
+      - name: test
+        run: |
+          pytest --cov=kube_bench_report_converter_2
